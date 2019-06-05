@@ -1,0 +1,145 @@
+module UART_CONTROL
+(
+	input clk,nRESET,tx_empty,rx_empty,
+	output reg ld_tx_data,tx_enable,uld_rx_data,rx_enable,
+	input [7:0] Data_in,
+	output[7:0] Data_out
+);
+
+integer b_cnt,b_num;
+reg	[7:0] Data;
+
+
+assign Data_out=Data;
+
+
+	// Declare state register
+	reg		[4:0] state;
+	
+	// Declare states
+	parameter IDLE = 5'b00001, RX_read = 5'b00010, TX_set = 5'b00100, TX_send=5'b01000, FINISH=5'b10000;
+	
+	// Determine the next state synchronously, based on the
+	// current state and the input
+	always @ (posedge clk or negedge nRESET) begin
+		if (!nRESET) begin
+			state <= IDLE;
+			b_cnt<=0;
+			Data=8'h00;
+			b_num=1;
+		end
+		else
+			case (state)
+				IDLE: begin
+					if (rx_empty)
+						state<= IDLE;
+					else	begin
+						state <=RX_read;
+					end //else
+				end //IDLE
+				RX_read: begin
+					if (rx_empty && uld_rx_data)
+					
+					
+					
+//						if (Data_in == 8'h31 )
+//							state<=TX_set;
+//						else begin
+//							Data=Data_in;
+//							state<=IDLE;
+//						end
+						
+						case (Data_in)
+							8'h30: begin
+								b_num=1;
+								state =TX_set;
+							end
+							8'h31: begin
+								b_num=2;
+								state =TX_set;
+							end
+							8'h32: begin
+								b_num=4;
+								state =TX_set;
+							end
+							default: begin
+								Data<=Data_in;
+							   state <=IDLE;
+							end
+						endcase
+
+					else
+						state<=RX_read;
+				end
+				TX_set: begin
+					if (tx_empty)
+						state <= TX_set;
+					else
+						state <= TX_send;
+				end
+				TX_send: begin
+					if (tx_empty)begin
+						b_cnt <= b_cnt+1;
+						state <= FINISH;
+						end
+					else
+						state <= TX_send;
+				end
+				FINISH: begin
+						if (b_cnt == b_num) begin
+							b_cnt=0;
+							state<=IDLE;
+							end
+						else begin
+							state <= TX_set;
+						end
+				end
+				default: state<=IDLE;
+			endcase
+	end
+	
+	// Determine the output based only on the current state
+	always @ (state)
+	begin
+		case (state)
+			IDLE: begin
+				ld_tx_data=0;
+				tx_enable=0;
+				uld_rx_data=0;
+				rx_enable=1;
+				//Data=8'b00000001;
+			end
+			RX_read: begin
+				uld_rx_data=1;
+				rx_enable=0;
+				ld_tx_data=0;
+				tx_enable=0;
+				//Data=8'b00000010;
+			end
+			TX_set:begin
+				uld_rx_data=0;
+				rx_enable=0;
+				ld_tx_data=1;
+				tx_enable=0;
+				//Data=8'b00000100;
+			end
+			TX_send:begin
+				uld_rx_data=0;
+				rx_enable=0;
+				ld_tx_data=0;
+				tx_enable=1;
+				//Data=8'b00001000;
+			end
+			FINISH: begin
+				uld_rx_data=0;
+				rx_enable=0;
+				ld_tx_data=0;
+				tx_enable=0;
+				//Data=8'b00010000;
+			end
+				
+		endcase
+	end
+
+
+endmodule

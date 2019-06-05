@@ -1,0 +1,30 @@
+
+State Machine - |TIMS_sensor_main|LCD_main:inst12|substate
+Name substate.01 
+substate.00 0 
+substate.01 1 
+
+State Machine - |TIMS_sensor_main|LCD_main:inst12|state
+Name state.FINISH state.RESET state.WI state.WC state.IDLE 
+state.IDLE 0 0 0 0 0 
+state.WC 0 0 0 1 1 
+state.WI 0 0 1 0 1 
+state.RESET 0 1 0 0 1 
+state.FINISH 1 0 0 0 1 
+
+State Machine - |TIMS_sensor_main|UART_CONTROL:inst6|AfterTX_state
+Name AfterTX_state.IDLE AfterTX_state.READ_FIFO AfterTX_state.SEND_DATA 
+AfterTX_state.IDLE 0 0 0 
+AfterTX_state.SEND_DATA 1 0 1 
+AfterTX_state.READ_FIFO 1 1 0 
+
+State Machine - |TIMS_sensor_main|UART_CONTROL:inst6|state
+Name state.RESET state.READ_FIFO state.TX_set state.SEND_DATA state.RX_read state.IDLE state.ACQUIRE state.TX_send 
+state.IDLE 0 0 0 0 0 0 0 0 
+state.RX_read 0 0 0 0 1 1 0 0 
+state.SEND_DATA 0 0 0 1 0 1 0 0 
+state.TX_set 0 0 1 0 0 1 0 0 
+state.READ_FIFO 0 1 0 0 0 1 0 0 
+state.RESET 1 0 0 0 0 1 0 0 
+state.TX_send 0 0 0 0 0 1 0 1 
+state.ACQUIRE 0 0 0 0 0 1 1 0 
